@@ -61,15 +61,16 @@ class Example(QWidget):
         num_pts = size.width() // self.pt_x_dist
         pts = self._micobj.get_frames()
 
-        print(np.shape(self.pts))
-        print(np.shape(pts))
+        if np.size(np.shape(pts)) == 2:
+            print(np.max(pts))
+            pts = np.reshape(pts, (np.size(pts)))
         self.pts = np.hstack((self.pts, pts))
         self.pts = self.pts[-num_pts:]
-        y = self.pts[0]
+        y = self.pts[0] + size.height()//2
         for i in range(num_pts):
             x = i*self.pt_x_dist
             x2 = (i+1)*self.pt_x_dist
-            y2 = self.pts[num_pts-i-1]
+            y2 = self.pts[num_pts-i-1] + size.height()//2
             qp.drawLine(x, y, x2, y2)
             y = y2
                 
@@ -91,7 +92,7 @@ class MicRec(object):
         atexit.register(self.close)
 
     def new_frame(self, data, frame_count, time_info, status):
-        data = np.fromstring(data, 'int16')
+        data = np.frombuffer(data, dtype='int16')
         with self.lock:
             self.frames.append(data)
             if self.stop:
@@ -118,5 +119,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     micobj = MicRec()
     ex = Example(micobj)
+    micobj.start()
     sys.exit(app.exec_())
 
